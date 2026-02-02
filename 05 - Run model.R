@@ -4,7 +4,7 @@
 # EMAIL: nathan.d.hooven@gmail.com
 # BEGAN: 14 Jan 2026
 # COMPLETED: 26 Jan 2026
-# LAST MODIFIED: 26 Jan 2026
+# LAST MODIFIED: 02 Feb 2026
 # R VERSION: 4.4.3
 
 # ______________________________________________________________________________
@@ -32,42 +32,33 @@ model.1.code <- nimbleCode({
   
     # alpha0 - baseline detection (logit scale)
     # intercept
-    alpha0_b0 ~ dnorm(0, sd = 2.5)    # Jensen et al. 2022 mean = logit(0.43) = -0.28
-    alpha0_b0_sd ~ dexp(0.5)
+    alpha0_b0 ~ dunif(-4, 4)
     
     # covariate effects
     alpha0_b1 ~ dnorm(0, sd = 1)     # male effect
-    alpha0_b2 ~ dnorm(0, sd = 1)     # RET effect
-    alpha0_b3 ~ dnorm(0, sd = 1)     # PIL effect
+    alpha0_b2 ~ dnorm(0, sd = 1)     # XMC effect
+    alpha0_b3 ~ dnorm(0, sd = 1)     # RET effect
+    alpha0_b4 ~ dnorm(0, sd = 1)     # PIL effect
 
     # alpha2 - previous capture effect (normal scale)
     # intercept
     alpha2_b0 ~ dnorm(0, sd = 1)
-    alpha2_b0_sd ~ dexp(0.5)
     
     # covariate effects
     alpha2_b1 ~ dnorm(0, sd = 1)     # male effect
-    alpha2_b2 ~ dnorm(0, sd = 1)     # RET effect
+    alpha2_b2 ~ dnorm(0, sd = 1)     # XMC effect
     alpha2_b3 ~ dnorm(0, sd = 1)     # PIL effect
+    alpha2_b4 ~ dnorm(0, sd = 1)     # PIL effect
   
     # sigma - exponential detection fn spatial scale of movement (log scale)
     # intercept
-    sigma_b0 ~ dnorm(log(45), sd = 1)    # Jensen et al. 2022 mean = log(45.27) = 3.81
-    sigma_b0_sd ~ dexp(0.5)
+    sigma_b0 ~ dunif(log(10), log(70))    # Jensen et al. 2022 mean = log(45.27) = 3.81
   
     # covariate effects
     sigma_b1 ~ dnorm(0, sd = 1)     # male effect
-    sigma_b2 ~ dnorm(0, sd = 1)     # RET effect
+    sigma_b2 ~ dnorm(0, sd = 1)     # XMC effect
     sigma_b3 ~ dnorm(0, sd = 1)     # PIL effect
-  
-    # cluster random intercepts (non-centered scaling factors)
-    for (x in 1:4) {
-      
-      alpha0_b0_z[x] ~ dnorm(0, sd = 1) 
-      alpha2_b0_z[x] ~ dnorm(0, sd = 1) 
-      sigma_b0_z[x] ~ dnorm(0, sd = 1) 
-      
-    }
+    sigma_b4 ~ dnorm(0, sd = 1)     # PIL effect
   
   # data augmentation - indexed by session [G]
   for (g in 1:G) {
@@ -89,22 +80,25 @@ model.1.code <- nimbleCode({
     
     # detection parameters
     # alpha0 - baseline detection (logit scale)
-    alpha0[i] <- alpha0_b0 + alpha0_b0_sd * alpha0_b0_z[cluster[i]] +
+    alpha0[i] <- alpha0_b0 + 
                  alpha0_b1 * sex[i] +
-                 alpha0_b2 * ret[i] +
-                 alpha0_b3 * pil[i]
+                 alpha0_b2 * ft[i] +
+                 alpha0_b3 * ret[i] +
+                 alpha0_b4 * pil[i]
       
     # alpha2 - trap response
-    alpha2[i] <- alpha2_b0 + alpha2_b0_sd * alpha2_b0_z[cluster[i]] +
+    alpha2[i] <- alpha2_b0 + 
                  alpha2_b1 * sex[i] +
-                 alpha2_b2 * ret[i] +
-                 alpha2_b3 * pil[i]
+                 alpha2_b2 * ft[i] +
+                 alpha2_b3 * ret[i] +
+                 alpha2_b4 * pil[i]
     
     # spatial scale of movement
-    log(sigma[i]) <- sigma_b0 + sigma_b0_sd * sigma_b0_z[cluster[i]] + 
+    log(sigma[i]) <- sigma_b0 + 
                      sigma_b1 * sex[i] +
-                     sigma_b2 * ret[i] +
-                     sigma_b3 * pil[i]
+                     sigma_b2 * ft[i] +
+                     sigma_b3 * ret[i] +
+                     sigma_b4 * pil[i]
     
     alpha1[i] <- -1 / sigma[i]
     
@@ -268,38 +262,33 @@ inits <- list(
   
   # alpha0 - baseline detection (logit scale)
   # intercept
-  alpha0_b0 = rnorm(1, 0, sd = 2.5),    
-  alpha0_b0_sd = rexp(1, 0.5),
+  alpha0_b0 = rnorm(1, 0, sd = 1), 
   
   # covariate effects
-  alpha0_b1 = rnorm(1, 0, sd = 1),     # male effect
-  alpha0_b2 = rnorm(1, 0, sd = 1),     # RET effect
-  alpha0_b3 = rnorm(1, 0, sd = 1),     # PIL effect
+  alpha0_b1 = rnorm(1, 0, sd = 1),     
+  alpha0_b2 = rnorm(1, 0, sd = 1),     
+  alpha0_b3 = rnorm(1, 0, sd = 1),     
+  alpha0_b4 = rnorm(1, 0, sd = 1),     
   
   # alpha2 - previous capture effect (normal scale)
   # intercept
   alpha2_b0 = rnorm(1, 0, sd = 1),
-  alpha2_b0_sd = rexp(1, 0.5),
   
   # covariate effects
-  alpha2_b1 = rnorm(1, 0, sd = 1),     # male effect
-  alpha2_b2 = rnorm(1, 0, sd = 1),     # RET effect
-  alpha2_b3 = rnorm(1, 0, sd = 1),     # PIL effect
+  alpha2_b1 = rnorm(1, 0, sd = 1),    
+  alpha2_b2 = rnorm(1, 0, sd = 1),     
+  alpha2_b3 = rnorm(1, 0, sd = 1),     
+  alpha2_b4 = rnorm(1, 0, sd = 1),     
   
   # sigma - exponential detection fn spatial scale of movement (log scale)
   # intercept
-  sigma_b0 = rnorm(1, log(45), sd = 1),    
-  sigma_b0_sd = rexp(1, 0.5),
+  sigma_b0 = runif(1, log(10), log(70)), 
   
   # covariate effects
-  sigma_b1 = rnorm(1, 0, sd = 1),     # male effect
-  sigma_b2 = rnorm(1, 0, sd = 1),     # RET effect
-  sigma_b3 = rnorm(1, 0, sd = 1),     # PIL effect
-  
-  # cluster random intercepts (non-centered scaling factors)
-  alpha0_b0_z = rnorm(4, 0, sd = 1), 
-  alpha2_b0_z = rnorm(4, 0, sd = 1), 
-  sigma_b0_z = rnorm(4, 0, sd = 1), 
+  sigma_b1 = rnorm(1, 0, sd = 1),     
+  sigma_b2 = rnorm(1, 0, sd = 1),     
+  sigma_b3 = rnorm(1, 0, sd = 1),     
+  sigma_b4 = rnorm(1, 0, sd = 1),     
   
   # data augmentation
   psi = runif(41, 0, 1),
@@ -319,14 +308,12 @@ monitor <- c(
   
   # detection
   # intercepts
-    "alpha0_b0", "alpha0_b0_sd", "alpha0_b0_z", 
-    "alpha2_b0", "alpha2_b0_sd", "alpha2_b0_z", 
-    "sigma_b0", "sigma_b0_sd", "sigma_b0_z",
+    "alpha0_b0", "alpha2_b0", "sigma_b0",
   
     # slopes
-    "alpha0_b1", "alpha0_b2", "alpha0_b3",
-    "alpha2_b1", "alpha2_b2", "alpha2_b3",
-    "sigma_b1", "sigma_b2", "sigma_b2",
+    "alpha0_b1", "alpha0_b2", "alpha0_b3", "alpha0_b4",
+    "alpha2_b1", "alpha2_b2", "alpha2_b3", "alpha2_b4",
+    "sigma_b1", "sigma_b2", "sigma_b3", "sigma_b4",
   
   # inclusion
   "psi",
@@ -352,10 +339,15 @@ model.1 <- nimbleModel(
   
 )
 
+# block samplers for sigma_b0 and alpha0_b0
+model.1.conf <- configureMCMC(model.1)
+model.1.conf$removeSamplers(c("alpha0_b0", "sigma_b0"))
+model.1.conf$addSampler(c("alpha0_b0", "sigma_b0"), "RW_block")
+
 # build model
 model.1.mcmc <- buildMCMC(
   
-  conf = model.1,
+  conf = model.1.conf,
   monitors = monitor
   
 )
@@ -368,13 +360,13 @@ model.1.comp <- compileNimble(model.1.mcmc)
 model.1.run <- runMCMC(
   
   mcmc = model.1.comp,
-  niter = 60000,
-  nburnin = 40000,
+  niter = 20000,
+  nburnin = 10000,
   nchains = 1,
   thin = 10,
   samplesAsCodaMCMC = TRUE
   
 )
 
-saveRDS(model.1.run, "SCR_closed1.rds")
+saveRDS(model.1.run, "SCR_block.rds")
 
