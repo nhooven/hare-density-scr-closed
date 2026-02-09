@@ -4,7 +4,7 @@
 # EMAIL: nathan.d.hooven@gmail.com
 # BEGAN: 14 Jan 2026
 # COMPLETED: 26 Jan 2026
-# LAST MODIFIED: 02 Feb 2026
+# LAST MODIFIED: 05 Feb 2026
 # R VERSION: 4.4.3
 
 # ______________________________________________________________________________
@@ -360,8 +360,8 @@ model.1.comp <- compileNimble(model.1.mcmc)
 model.1.run <- runMCMC(
   
   mcmc = model.1.comp,
-  niter = 20000,
-  nburnin = 10000,
+  niter = 40000,
+  nburnin = 20000,
   nchains = 1,
   thin = 10,
   samplesAsCodaMCMC = TRUE

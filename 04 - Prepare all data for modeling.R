@@ -4,7 +4,7 @@
 # EMAIL: nathan.d.hooven@gmail.com
 # BEGAN: 14 Jan 2026
 # COMPLETED: 20 Jan 2026
-# LAST MODIFIED: 22 Jan 2026
+# LAST MODIFIED: 05 Feb 2026
 # R VERSION: 4.4.3
 
 # ______________________________________________________________________________
@@ -119,9 +119,14 @@ aug.factor.bysession <- data.frame(
 # totals by session (add 4 to the aug.factor)
 n.aug.g <- n.g * (aug.factor.bysession$aug.factor + 4)
 
-# add a few more for sessions 24 and 36
-n.aug.g[24] <- 150
-n.aug.g[36] <- 84
+# add a few more for sessions: 24, 27, 28, 36, 39, 40, 41
+n.aug.g[24] <- 175
+n.aug.g[27] <- 100
+n.aug.g[28] <- 80
+n.aug.g[36] <- 100
+n.aug.g[39] <- 160
+n.aug.g[40] <- 80
+n.aug.g[41] <- 50
 
 n.aug = sum(n.aug.g)
 
