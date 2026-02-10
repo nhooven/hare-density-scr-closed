@@ -285,3 +285,103 @@ ggplot(data = d.df) +
   scale_color_manual(values = c("#003300", "#669900"))
 
 # 732 x 292
+
+# ______________________________________________________________________________
+# 4. Mean density change by treatment ----
+# ______________________________________________________________________________
+# 4a. Clean data ----
+# ______________________________________________________________________________
+
+deltaD <- model.runs.df %>%
+  
+  dplyr::select(`meanDeltaD[1]`:`meanDeltaD[7]`) %>%
+  
+  # pivot
+  pivot_longer(cols = `meanDeltaD[1]`:`meanDeltaD[7]`,
+               names_to = "group",
+               names_prefix = "meanDeltaD") %>%
+  
+  # remove brackets
+  mutate(group = as.integer(str_extract(group, pattern = "\\d{1,2}"))) %>%
+  
+  # summarize with medians and CIs
+  group_by(group) %>%
+  
+  summarize(med = median(value),
+            l50 = as.numeric(hdi(value, ci = 0.50)[2]),
+            u50 = as.numeric(hdi(value, ci = 0.50)[3]),
+            l95 = as.numeric(hdi(value, ci = 0.95)[2]),
+            u95 = as.numeric(hdi(value, ci = 0.95)[3])) %>%
+  
+  # add trt and year variables
+  mutate(year = factor(c("PRE 2 - PRE 1",
+                         "POST 1 - PRE 2",
+                         "POST 1 - PRE 2",
+                         "POST 1 - PRE 2",
+                         "POST 2 - POST 1",
+                         "POST 2 - POST 1",
+                         "POST 2 - POST 1"),
+                       levels = c("PRE 2 - PRE 1",
+                                  "POST 1 - PRE 2",
+                                  "POST 2 - POST 1")),
+         trt = factor(c("untreated", 
+                        "untreated", "retention", "piling",
+                        "untreated", "retention", "piling"),
+                      levels = c("untreated", "retention", "piling")))
+
+# ______________________________________________________________________________
+# 4b. Plot ----
+# ______________________________________________________________________________
+
+ggplot(data = deltaD) +
+  
+  theme_bw() +
+  
+  # dashed line at zero
+  geom_hline(yintercept = 0,
+             linetype = "dashed") +
+  
+  # 95% CI
+  geom_errorbar(aes(x = year,
+                    ymin = l95,
+                    ymax = u95,
+                    group = group,
+                    color = trt),
+                width = 0,
+                linewidth = 2,
+                position = position_dodge(width = 0.5),
+                alpha = 0.5) +
+  
+  # 50% CI
+  geom_errorbar(aes(x = year,
+                    ymin = l50,
+                    ymax = u50,
+                    group = group,
+                    color = trt),
+                width = 0,
+                linewidth = 2,
+                position = position_dodge(width = 0.5)) +
+  
+  # median
+  geom_point(aes(x = year,
+                 y = med,
+                 group = group,
+                 color = trt),
+             size = 3,
+             shape = 21,
+             stroke = 1.5,
+             fill = "white",
+             position = position_dodge(width = 0.5)) +
+  
+  theme(panel.grid = element_blank(),
+        axis.title.x = element_blank(),
+        axis.text = element_text(color = "black"),
+        legend.title = element_blank(),
+        legend.position = c(0.8, 0.85)) +
+  
+  ylab("Mean % change in hare density") +
+  
+  scale_y_continuous(labels = c(-50, 0, 50, 100))
+
+
+deltaD
